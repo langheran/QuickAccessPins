@@ -5,10 +5,13 @@ Loop, %0%
 	args := args . param
 }
 
+shiftIsPressed:=GetKeyState("Shift", "P")
+controlIsPressed:=GetKeyState("Control", "P")
+
 IniRead, skip, %A_ScriptDir%\QuickAccessPins.ini, Settings,skip, 2
 IniWrite, %skip%, %A_ScriptDir%\QuickAccessPins.ini, Settings,skip
 
-if(GetKeyState("Control", "P") || GetKeyState("Shift", "P"))
+if(controlIsPressed)
 {
 	if(FileExist(args))
 	{
@@ -36,27 +39,40 @@ for e in shell.Namespace("shell:::{679f85cb-0220-4080-b29b-5540cc05aab6}").Items
 	}
 }
 
-FormatTime, CurrTime,,dMMM
-FileSelectFile, CurrentPinsPath, S16, %A_Desktop%\%CurrTime%.pins, Save Pins as..., Quick Access Pins (*.pins)
-if(!ErrorLevel)
+if(!shiftIsPressed)
 {
-	FileAppend, %paths%, %CurrentPinsPath%
-	if(FileExist(args))
+	if(CurrentPinsPath:=GetSaveFileName())
 	{
-		count:=0
-		for e in shell.Namespace("shell:::{679f85cb-0220-4080-b29b-5540cc05aab6}").Items()
-		{
-			if(InStr(FileExist(e.Path), "D")){
-				count:=count+1
-				if(count>skip)
-					e.InvokeVerb("unpinfromhome")
-			}
-		}
-		Loop, read, %args%
-		{
-			if(InStr(FileExist(A_LoopReadLine), "D")){
-				shell.Namespace(A_LoopReadLine).Self.InvokeVerb("pintohome")
-			}
+		FileAppend, %paths%, %CurrentPinsPath%
+	}
+}
+
+if(FileExist(args) && (CurrentPinsPath || shiftIsPressed))
+{
+	count:=0
+	for e in shell.Namespace("shell:::{679f85cb-0220-4080-b29b-5540cc05aab6}").Items()
+	{
+		if(InStr(FileExist(e.Path), "D")){
+			count:=count+1
+			if(count>skip)
+				e.InvokeVerb("unpinfromhome")
 		}
 	}
+	Loop, read, %args%
+	{
+		if(InStr(FileExist(A_LoopReadLine), "D")){
+			shell.Namespace(A_LoopReadLine).Self.InvokeVerb("pintohome")
+		}
+	}
+}
+
+GetSaveFileName()
+{
+	FormatTime, CurrTime,,dMMM
+	FileSelectFile, CurrentPinsPath, S16, %A_Desktop%\%CurrTime%.pins, Save Pins as..., Quick Access Pins (*.pins)
+	if(!ErrorLevel)
+	{
+		return CurrentPinsPath
+	}
+	return 0
 }
