@@ -1,12 +1,12 @@
+shiftIsPressed:=GetKeyState("Shift", "P")
+controlIsPressed:=GetKeyState("Control", "P")
+
 Loop, %0%
 {
     param := %A_Index%
 	num = %A_Index%
 	args := args . param
 }
-
-shiftIsPressed:=GetKeyState("Shift", "P")
-controlIsPressed:=GetKeyState("Control", "P")
 
 IniRead, skip, %A_ScriptDir%\QuickAccessPins.ini, Settings,skip, 2
 IniWrite, %skip%, %A_ScriptDir%\QuickAccessPins.ini, Settings,skip
